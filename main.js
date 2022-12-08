@@ -17,9 +17,9 @@ client.connect((err) => {
 
 async function authentication(username, password) {
   try {
-    const res = await client.query(
-      `SELECT * FROM customer WHERE username='${username}'`
-    );
+    const res = await client.query(`
+      SELECT * FROM get_user('${username}')
+    `)
     const data = res.rows[0];
     if (data.password == password) {
       return true;
@@ -45,15 +45,9 @@ async function getCategory() {
 
 async function getProductByCategory(category) {
   try {
-    const res = await client.query(`
-            SELECT  product.product_name, product.price, product.available_stock, supply_product.supplier_id
-            FROM product_category
-            JOIN category_of_product ON product_category.category_id = category_of_product.category_id
-            JOIN product ON product.pid = category_of_product.product_id
-            JOIN supply_product ON supply_product.product_id = product.pid
-            WHERE product_category.category_name = '${category}'
-        `);
-
+    const res = await client.query(
+      `SELECT * FROM get_product_by_category('${category}')`
+    )
     return res.rows;
   } catch (error) {
     console.log(error);
@@ -63,12 +57,8 @@ async function getProductByCategory(category) {
 async function sortPrice(category, trend = "") {
   try {
     const res = await client.query(`
-        SELECT  product.product_name, product.price, product.available_stock
-        FROM product_category
-        JOIN category_of_product ON product_category.category_id = category_of_product.category_id
-        JOIN product ON product.pid = category_of_product.product_id
-        WHERE product_category.category_name = '${category}'
-        ORDER BY product.price ${trend}`)
+      SELECT * FROM sort_price('${category}', '${trend}')
+    `)
     return res.rows;
   } catch (error) {
     console.log(error);
@@ -78,9 +68,7 @@ async function sortPrice(category, trend = "") {
 async function sortStock(trend){
     try {
         const res = await client.query(`
-            SELECT  product_name, price, available_stock
-            FROM product
-            ORDER BY available_stock ${trend};
+        SELECT * FROM sort_stock('${trend}')
         `)
         return res.rows
     } catch (error) {
@@ -88,7 +76,7 @@ async function sortStock(trend){
     }
 } 
 
-async function insertSupplier(counter, shop_name, address, tel, email) {
+async function insertSupplier(counter, shop_name, tel) {
   try {
     const res = client.query(`
         INSERT INTO supplier(supplier_id, supplier_name, supplier_phone_number)
@@ -117,7 +105,7 @@ async function insertProduct(counter, product_name, price, stock) {
 }
 
 async function run() {
-  const res = await sortStock("");
+  const res = await sortStock('DESC')
   console.log(res);
 }
 
